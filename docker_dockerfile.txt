@@ -1,0 +1,268 @@
+* Dockerfile is a text document which contains the instruction to build an images
+* Automatically reads the instruction from Dockerfile to build an images
+
+Instructions:
+==============
+* ADD	Add local or remote files and directories.
+* Use ADD for remote URLs and automatic extraction of tarballs[where .tar, .tar.gz, .tar.bz2, or .tar.xz ]automatically extracted and add into destination path.
+* Use COPY for simple file copying, as it’s more explicit and has fewer surprises in behavior.
+
+ex: 1
+=====
+1. Copying Files and Directories from Host to Container(here host means local machine)
+# Copy a file from the host to the container
+ADD ./localfile.txt /path/in/container/
+
+2.# Copy a directory from the host to the container
+ADD ./localdir /path/in/container/
+
+here ./localfile.txt is the file on our local machine.
+here /path/in/container/ is the directory in the container where the file will be copied.
+
+
+ex:2
+=====
+1.Copying a Remote URL to the Container
+# Download a file from a URL and add it to the container
+ADD https://example.com/file.tar.gz /path/in/container/
+In this case, Docker will download the file file.tar.gz from the URL https://example.com/file.tar.gz and place it in the specified container path
+2.Automatically Extracting .tar Files
+if source file is a tarball[e.g., .tar.gz, .tar.bz2, .tar.xz] and automatically extract content into destination path.
+
+ex:3
+====
+Multiple ADD Instructions
+You can use multiple ADD instructions in a single Dockerfile to copy different files into the container.
+
+ADD vs COPY
+===========
+both will work for the same , but there is a small difference
+COPY:
+=====
+copy a file/folder from local machine to destination path without any additional things
+ADD:
+===
+1.this instruction copies from local machine to destination path
+2.at the same it download url into destination path
+3. to  unarchive file into destination path .
+
+========================================================================================================================================
+RUN	Execute build commands.
+this RUN instruction is mainly used for to install packages using package manager
+The RUN instruction in a Dockerfile is used to execute commands during the image build process.
+You can use two forms of the RUN instruction:
+
+Shell form: Uses the default shell (/bin/sh -c) to execute commands.
+Exec form: Uses a list syntax to directly execute the command without invoking a shell.
+
+Shell form:
+===========
+The shell form is the most common and looks like this:
+RUN <command>
+This form runs the command in the container using /bin/sh -c.
+
+Exec Form:
+==========
+The exec form avoids invoking a shell, and looks like this:
+RUN ["executable", "param1", "param2"]
+
+ex:1
+====
+FROM registry.redhat.io/rhel8/rhel
+# Install curl and wget using dnf
+RUN dnf install -y curl wget && \
+    dnf clean all
+
+ex:2
+====
+Update the System
+-----------------
+FROM registry.redhat.io/rhel8/rhel
+# Update all installed packages
+RUN dnf -y update && \
+    dnf clean all
+
+ex:3
+====
+Install Multiple Packages
+-------------------------
+to install multiple packages at a time:
+
+FROM registry.redhat.io/rhel8/rhel
+# Install multiple packages in a single RUN command
+RUN dnf install -y curl wget vim git && \
+    dnf clean all
+* Install curl, wget, vim, and git.
+* Clean up the dnf cache to keep the image size smaller.
+
+
+ex:4
+====
+Installing Software and Creating Directories
+
+FROM registry.redhat.io/rhel8/rhel
+# Install software and create directories
+RUN dnf install -y curl wget && \
+    mkdir -p /app /logs && \
+    dnf clean all
+
+
+* to install multiple packages like curl,wget
+* to make a directory /app and /logs
+* clean up dnf cache
+
+ADD vs RUN:
+===========
+* ADD is great for simple file downloads from a URL during build but has limited flexibility (like extracting .tar files).
+* RUN is more powerful, allowing you to use tools like wget or curl to download files and do additional tasks, such as extracting the file or installing dependencies.
+
+RUN vs ADD:
+============
+In RUN cmd to download a file by using a tool like curl , wget
+In ADD cmd to download a file automatically into destination path
+
+In RUN cmd to extract a tarball [ .tar.gz,....] by using tar tool/cmd
+In ADD cmd to extract a tarball automatically into destination path
+
+Running a shell script:
+=======================
+If you want to run a shell script to configure your environment, you can copy it into the container and then execute it with a RUN command.
+
+Copying and Running a Shell Script
+FROM registry.redhat.io/rhel8/rhel
+
+# Copy a script and run it
+COPY setup.sh /setup.sh
+RUN chmod +x /setup.sh && /setup.sh
+
+This copies the setup.sh script into the container, makes it executable, and then runs it.
+
+Setting Environment Variables Using RUN:
+========================================
+FROM registry.redhat.io/rhel8/rhel
+# Set environment variables in the current RUN layer
+RUN export MY_VAR="some_value" && \
+    echo "MY_VAR is set to $MY_VAR"
+
+Installing and configuring services:
+====================================
+FROM registry.redhat.io/rhel8/rhel
+
+# Install and start Nginx
+RUN dnf install -y nginx && \
+    systemctl enable nginx && \
+    dnf clean all
+here
+*** && to combine multiple commands
+*** -y accepts to default responses at package installation time
+*** to clean dnf cache every time
+*** \(backslash) to split multiple lines
+
+=======================================================================================================================================
+FROM	Create a new build stage from a base image.
+The FROM instruction is used in a Dockerfile to specify the base image, which could be an operating system (OS) image like Ubuntu, Alpine, CentOS, or Debian.
+on top of this base image we can able to install packages,download url, extract tarballs ,.....
+
+ex:
+===
+FROM  docker.io/redhat/ubi9
+=====================================================================================================================================
+COPY	Copy files and directories.
+to copy files and directory from local machine into destination path.
+=====================================================================================================================================
+WORKDIR	Change working directory.
+to navigate from one directory to another
+ex:
+==
+FROM     docker.io/redhat/ubi9
+RUN      mkdir -p /app
+WORKDIR  /app [Set the working directory to /app]
+
+The WORKDIR instruction sets the working directory for any RUN, CMD, ENTRYPOINT, COPY and ADD instructions
+
+======================================================================================================================================
+CMD	Specify default commands.
+the CMD instruction is used to execute at the time of creating a container not at the build image stage
+ex:1
+====
+Basic CMD to Run a Shell
+------------------------
+FROM ubuntu:20.04
+# Set the default command to run bash when the container starts
+CMD ["bash"]
+
+When the container starts, it will run bash by default.
+If you run this image with docker run my_image_name, you'll get an interactive Bash shell.
+
+ex:2
+====
+Overriding CMD in docker run
+----------------------------
+FROM ubuntu:20.04
+
+# Set default command
+CMD ["echo", "Hello, World!"]
+When you build and run the container:
+
+docker build -t my_image_name .
+docker run my_image_name
+
+o/p:
+----
+Hello World
+
+docker run my_image_name echo Hello Universe
+o/p:
+----
+Hello Universe
+
+ex:3
+=====
+CMD ["executable", "param1", "param2"])
+CMD ["npm", "start"] , here npm is a command to start
+** CMD ["npm", "start"]: This will automatically run your Node.js application when the container starts. No need for Bash.
+** CMD ["/bin/bash"]: This will open an interactive Bash shell when the container starts, and npm start won't run automatically.
+** If you need both (starting the app and interacting with the shell), you can combine them using something like CMD ["bash", "-c", "npm start && bash"].
+
+=====================================================================================================================================
+ENTRYPOINT	Specify default executable.
+ENTRYPOINT ["executable", "param1", "param2"]
+
+
+1. CMD ["bash",/run.sh] to execute run.sh
+2. CMD[echo Hello World] to display hello world
+3. to override in CMD : CMD[echo Hello World]
+docker run image Hello Universe : o/p Hello Universe
+4. ENTRYPOINT ["bash" ,"/run.sh"]
+5. should not override the content in ENTRYPOINT
+6. FROM ubuntu:20.04
+   # Set default command with ENTRYPOINT
+   ENTRYPOINT ["echo"]
+   CMD ["Hello from CMD!"]
+   Default behavior: If you run the container without any arguments:
+
+
+
+1.ENTRYPOINT sets the main command to be executed.
+2.CMD sets the default arguments for that command.
+3.You can override the arguments by providing them when running the container.
+4.If you want to change the command itself, you can override ENTRYPOINT.
+-----------------------------------------------------------------------
+docker run --entrypoint <new_command> <image_name> <arguments>
+ex:1
+----
+FROM                 docker.io/redhat/ubi9
+ENTRYPOINT  ["cat","/etc/passwd"] this is the default command
+at run time u changed
+docker run --entrypoint echo image_name Hello World
+
+
+
+
+
+
+
+
+
+
+
