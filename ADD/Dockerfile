@@ -1,6 +1,7 @@
 FROM       docker.io/redhat/ubi9
 ADD        https://roboshop-artifacts.s3.amazonaws.com/frontend-v3.zip  /tmp/frontend.zip
 ADD        /tmp/frontend.zip  /usr/share/nginx/html/
+CMD ["sleep","100"]
 
 
 
