@@ -1,3 +1,6 @@
 FROM    docker.io/redhat/ubi9
-ADD     https://github.com/pdevops87/roboshop-dockerfile-v1/tree/main/ADD/Dockerfile  /
+ADD     --keep-git-dir https://github.com/pdevops87/roboshop-dockerfile-v1/tree/main/ADD/Dockerfile  /
 CMD ["sleep","100"]
+
+
+# we are adding git repo raw data into a container, to know explicitly .git files add "--keep-git-dir"
