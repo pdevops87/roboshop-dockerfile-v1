@@ -258,6 +258,41 @@ docker run --entrypoint echo image_name Hello World
 
 
 
+=====================================================================================================================
+Ex:1
+----
+FROM      docker.io/redhat/ubi9:latest
+ADD       sample.txt /
+
+1. how to build an image?
+docker build -t "name" . , here -t is a tag name
+docker build -t my-app . here myapp is the name of image
+
+2. how to create a container on top of image?
+3. docker exec --rm -it "name/folder" bash, enters into container
+here -it , interactive container
+-- rm , once containers exit and stops automatically then remove the container
+
+or
+docker run -it CMD_1 bash
+docker ps -a
+container is in exited stage , then remove docker rm "<container_id>"
+
+ex:2
+=====
+FROM       docker.io/redhat/ubi9
+ADD        https://roboshop-artifacts.s3.amazonaws.com/frontend-v3.zip  /
+ADD        --keep-git-dir https://github.com/pdevops87/roboshop-docker-v1 /
+
+to check git in linux server:: ls -A
+to check git inside a container:: add --keep-git-dir
+
+
+
+
+
+
+
 
 
 
