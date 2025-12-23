@@ -264,6 +264,10 @@ Ex:1
 FROM      docker.io/redhat/ubi9:latest
 ADD       sample.txt /
 
+** No automatic unzipping or untarring occurs for URLs.
+* Docker only auto-extracts local tar archives (.tar, .tar.gz, .tgz, .tar.bz2).
+*Files downloaded from a URL are never auto-extracted, even if it’s a tar.
+
 1. how to build an image?
 docker build -t "name" . , here -t is a tag name
 docker build -t my-app . here myapp is the name of image
