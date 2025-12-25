@@ -293,6 +293,254 @@ to check git inside a container:: add --keep-git-dir
 
 
 
+================================================================================================================================
+ARG → build-time only, cannot be used by running containers.
+ENV → build-time and runtime, persists in the image, can be overridden when the container runs.
+Often used together: ARG to pass a value during build → ENV to store it in the image.
+
+# Dockerfile
+ENV APP_VERSION=1.0  // stores it in image
+RUN echo "Building app version $APP_VERSION" //
+CMD ["sh", "-c", "echo Running app version $APP_VERSION && sleep 100"] // sh ---shell ; -c ----command ;
+
+ENV syntax:
+-----------
+ENV <key>=<value> [<key>=<value>...]
+ex:
+===
+in two ways data will add into ENV
+FROM     docker.io/redhat/ubi9
+ENTRYPOINT ["tail","-f","/dev/null"] ; suppose if we use sleep 100 after 100 seconds container status is in exit mode; to run a container in infinite times then we should use /dev/null
+ENV url=google.com
+
+docker run 05
+docker run -e url=yahoo.com 05 ; here url override with new data
+
+
+
+
+docker run --rm "name" , to know the bug/error
+
+
+CMD:
+----
+FROM           docker.io/redhat/ubi9
+ADD            run.sh  /
+ENTRYPOINT    ["bash","/run.sh"]
+
+run.sh
+======
+echo Hello World
+
+ex:2
+=====
+run.sh
+------
+echo $* , all inputs
+
+FROM           docker.io/redhat/ubi9
+ADD            run.sh  /
+ENTRYPOINT    ["bash","/run.sh"]
+CMD           ["Hello"] , here default value is Hello
+
+
+ex:3
+=====
+run.sh
+------
+echo $* , all inputs
+
+FROM           docker.io/redhat/ubi9
+ADD            run.sh  /
+ENTRYPOINT    ["bash","/run.sh"]
+
+docker run --rm "image-id" Hello Universe
+here we have to override entrypoint also,
+docker run --rm 01
+You are not passing any arguments to the container.
+
+If your Dockerfile ENTRYPOINT or CMD is run.sh echo $*, then $* inside the container will be empty.
+
+So the executed command is essentially:
+
+bash
+Copy code
+run.sh echo
+No extra parameters.
+
+
+--------------------------------------------------------------------------------------------------------------------------------
+CMD:
+===
+The CMD instruction sets the command to be executed when running a container from an image.
+CMD ["executable","param1","param2"] (exec form)
+CMD ["param1","param2"] (exec form, as default parameters to ENTRYPOINT)
+
+FROM        docker.io/redhat/ubi9
+CMD ["ping","-c5","google.com"]
+
+
+google.com is a default argument supplied by CMD
+
+ENTRYPOINT defines what runs
+
+CMD defines with what arguments (by default)
+// docker build -t cmd:1.0 .
+// docker run cmd:1.0 , it will display o/p 5 times google.com
+we have to pass parameter at runtime also , docker run cmd:1.0 -c5 yahoo.com
+
+
+ENTRYPOINT:
+===========
+FROM        docker.io/redhat/ubi9
+ENTRYPOINT ["ping","-c5","google.com"]
+
+
+// docker build -t entrypoint:1.0 .
+// docker run entrypoint:1.0 , it will display o/p 5 times google.com
+we have to pass parameter at runtime but in entrypoint there is no concept of overriding
+ docker run cmd:1.0 -c5 yahoo.com // name or service not known
+ docker ps -a  --no--trunc
+
+
+ Ex:2
+ ----
+ FROM                  docker.io/redhat/ubi9
+ CMD ["google.com"]
+ ENTRYPOINT ["ping","-c5"]
+
+In the above instructions, in entrypoint we didn't pass another parameter so docker uses google.com as default value
+
+CMD vs ENTRYPOINT:
+==================
+* CMD and ENTRYPOINT can use at a time
+* CMD, is used to supply default arguments at run time, and it can be overriden default args at run time.
+
+ex:
+===
+FROM                  docker.io/redhat/ubi9
+ CMD ["yahoo.com"]
+ ENTRYPOINT ["ping","-c5"]
+
+to overriden default value from runtime:
+docker run entrypoint:1.0 yahoo.com
+
+
+
+USER
+====
+we should not let the containers as root user
+FROM          docker.io/redhat/ubi9
+RUN           adduser expense
+USER           expense
+CMD ["sleep","100"]
+
+// here create a new user on top of the image at build time
+// Switches the default user for the container to expense
+
+
+WORKDIR: 1
+==========
+FROM         docker.io/redhat/ubi9
+RUN          adduser expense
+USER         expense
+RUN          mkdir /app
+RUN          cd /app   // here not to navigate to /app, to override this we can use WORKDIR
+RUN          pwd
+
+
+
+WORKDIR: 2
+==========
+FROM         docker.io/redhat/ubi9
+RUN          adduser expense
+USER         expense
+RUN          mkdir /app
+WORKDIR      /app
+RUN          pwd
+
+// to know the OS version  : cat /etc/*release
+
+
+ARG:
+====
+ARG               version
+FROM              docker.io/redhat/ubi${version}
+CMD   ["cat /etc/*release"]
+
+// docker build --build-arg version=9 -t arg:1.0 .
+
+suppose sometimes we forget to provide value for the version then to provide default value in image itself
+
+ARG:
+====
+ARG               version
+FROM              docker.io/redhat/ubi${version:-9}
+CMD   ["cat /etc/*release"]
+
+
+how can i access arg inside a container?
+FROM            docker.io/redhat/ubi9
+ARG  name
+ARG course
+ARG Duration
+ENV Duration=${Duration}
+
+here arg can store inside a container through ENV instructions
+
+ONBUILD:
+========
+to create an image , others should not recreate the same image , they use same image, on top of this to display customize content
+
+FROM                 docker.io/redhat/ubi9
+RUN                  dnf install nginx -y
+RUN                  rm -f /usr/share/nginx/html/index.html
+ONBUILD COPY  index.html /usr/share/nginx/html/index.html
+CMD  ["nginx","-g", "daemon off;"]
+
+
+// when we build an image , ONBUILD will not run
+test> Dockerfile > FROM   onbuild:1.0
+create a folder > check ONBUILD structure
+* docker build -t onbuild:1.0 .
+* docker build -t onbuild-test:1.0 .
+* docker run -d -p 80:80 onbuild-test:1.0
+
+
+
+EXPOSE:
+======
+ex:
+FROM                   docker.io/redhat/ubi9
+ENTRYPOINT ["tail","-f","/dev/null"]
+EXPOSE 80
+
+** man nginx
+
+List of tools to run only at compilation time:
+===============================================
+1. Java / JVM world
+=======================
+Maven → downloads dependencies, compiles code, runs tests, packages JAR/WAR.
+Gradle → same as Maven, builds code, manages dependencies.
+Ant → older build tool, compiles code, packages projects.
+Javac → Java compiler; converts .java → .class.
+
+2. Frontend / JavaScript
+=========================
+Node.js / npm / yarn → downloads dependencies, runs build scripts.
+Webpack / Parcel / Vite → bundles and transpiles frontend code.
+Babel / TypeScript compiler (tsc) → compiles modern JS/TS → browser-compatible JS.
+
+
+
+
+
+
+
+
+
+
 
 
 

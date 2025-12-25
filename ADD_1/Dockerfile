@@ -1,5 +1,5 @@
 FROM    docker.io/redhat/ubi9
-ADD     --keep-git-dir https://github.com/pdevops87/roboshop-dockerfile-v1  /
+ADD     --keep-git-dir https://github.com/pdevops87/roboshop-dockerfile-v1.git  /
 CMD ["sleep","100"]
 
 
