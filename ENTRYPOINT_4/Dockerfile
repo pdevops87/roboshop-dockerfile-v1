@@ -6,7 +6,7 @@ RUN                unzip /tmp/shipping.zip -d /app/
 WORKDIR            /app
 RUN               mvn clean package
 
-FROM               openjdk:17.0.1-slim-bullseye
+FROM               docker.io/openjdk:17.0.1-slim-bullseye
 COPY               --from=build /app/target/shipping-1.0.jar /shipping.jar
-ENTRYPOINT         ["java", "-jar", "/app/shipping.jar"]
+ENTRYPOINT         ["java", "-jar", "/shipping.jar"]
 
