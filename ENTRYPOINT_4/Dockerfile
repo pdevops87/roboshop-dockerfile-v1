@@ -1,5 +1,5 @@
-FROM               docker.io/maven:3.9.12-amazoncorretto  AS build
-RUN                dnf install unzip maven -y
+FROM               docker.io/FROM maven:3.9-openjdk-17  AS build
+RUN                dnf install unzip -y
 RUN                mkdir /app
 ADD                https://roboshop-artifacts.s3.amazonaws.com/shipping-v3.zip  /tmp/shipping.zip
 RUN                unzip /tmp/shipping.zip -d /app/
