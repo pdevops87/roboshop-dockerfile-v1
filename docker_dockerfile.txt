@@ -534,6 +534,23 @@ Babel / TypeScript compiler (tsc) → compiles modern JS/TS → browser-compatib
 
 
 
+How Nginx is started inside the container
+
+Inside the Nginx image, the main command is basically:
+
+nginx -g "daemon off;"
+
+
+Why?
+
+daemon off; keeps Nginx in the foreground
+
+Containers must have a foreground process
+
+No systemctl, no background daemons
+
+
+
 
 
 
