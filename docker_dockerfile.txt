@@ -551,6 +551,145 @@ No systemctl, no background daemons
 
 
 
+HEALTHCHECK:
+==============
+HEALTHCHECK is used to tell Docker how to test if your container is running correctly.
+syntax:
+======
+HEALTHCHECK [OPTIONS] CMD <command>
+OPTIONS (optional)
+=====================
+--interval=DURATION → how often to run the check (default 30s)
+--timeout=DURATION → how long to wait for the check to succeed (default 30s)
+--start-period=DURATION → delay before starting health checks (default 0s)
+--retries=N → how many failures before marking unhealthy (default 3)
+
+CMD → a command that returns 0 if healthy, non-zero if unhealthy.
+
+ex:
+===
+FROM docker.io/redhat/ubi9
+RUN dnf install nginx -y
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+
+# Healthcheck: try to curl localhost port 80
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD curl -f http://localhost/ || exit 1
+
+
+health endpoint:
+===============
+curl localhost:80/health , will get 404 error
+curl -f http://localhost:80/health , now it will return 200 OK
+
+ONBUILD:
+========
+ONBUILD is an instruction you add to your own Dockerfile.
+beforeimage:
+============
+FROM            docker.io/redhat/ubi9
+LABEL           Project=Roboshop
+ONBUILD         RUN dnf clean all
+
+afterimage:
+============
+FROM                 10before
+RUN                  dnf install nginx -y
+ENTRYPOINT ["nginx","-g","daemon-off;"]
+EXPOSE 80
+
+in the above ONBUILD instructions beforeimage will build an image upto LABEL only , third sentence will not add in image
+when we build image second time , first ONBUILD instructions will execute and then execute next steps.
+
+ex:2
+====
+FROM                             docker.io/redhat/ubi9
+RUN                              dnf install nginx -y
+EXPOSE                           80
+ONBUILD                         RUN rm -rf /usr/share/nginx/html/*
+
+
+FROM     10before
+RUN      mkdir /usr/share/nginx/html/index.html
+RUN      echo Hello World >/usr/share/nginx/html/index.html
+
+
+cmd: kill -l
+
+STOPSIGNAL:
+===========
+STOPSIGNAL SIGQUIT only tells Docker what signal to send when you stop the container.
+FROM redhat/ubi9
+RUN dnf install nginx -y
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+STOPSIGNAL SIGQUIT
+
+tail -f /dev/null ; to run a container infinite times
+once create a container , then wantedly to stop a container , docker stop "container-id"
+docker ps -a; checks container is in running mode or exit mode [internally kill -9 to stop a container]
+checks the signal status: docker ps -a
+
+
+Command to check whether package is installed or not:
+======================================================
+rpm -qi /bin/ps
+rpm → Red Hat Package Manager (used to manage .rpm packages on RHEL, CentOS, Fedora, etc.).
+
+-q → query a package.
+
+-i → display detailed information about the package.
+
+/bin/ps → the path of a file on your system.
+
+type ps
+enable grep ps
+dnf provides /bin/ps
+
+ps is not installed:
+=====================
+If ps is not installed
+
+On Red Hat-based systems (RHEL, CentOS, Fedora), ps comes from the procps-ng package.
+Install it using dnf or yum:
+sudo dnf install procps-ng   # RHEL 8 / Fedora
+
+
+ex:2
+====
+FROM                     docker.io/redhat/ubi9
+RUN                      dnf install procps-ng -y
+USER                     bin  ;;//switch from root to bin user
+ENTRYPOINT ["sleep","1000"]
+
+
+VOLUME:
+=======
+Option A: Host directory mount
+docker run -d -v /home/user/app:/app myimage
+
+
+/home/user/app → host directory
+
+/app → container directory
+
+Now, anything the container writes to /app is visible on the host at /home/user/app.
+
+Option B: Named volume
+docker run -d -v myappdata:/app myimage
+
+
+/app → container directory
+
+myappdata → Docker-managed volume
+
+Data persists, but host cannot see it directly unless you inspect the volume path.
+
+
+
+
+
 
 
 
