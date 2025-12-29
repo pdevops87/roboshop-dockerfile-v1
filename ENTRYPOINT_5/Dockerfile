@@ -14,3 +14,8 @@ COPY              --from=build /app /app
 WORKDIR           /app
 ENTRYPOINT        ["node","server.js"]
 
+
+# know about OS
+# cat /etc/*release
+# based on that OS use package manager
+
