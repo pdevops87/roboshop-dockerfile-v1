@@ -1,5 +1,5 @@
 FROM                   docker.io/node:20-alpine AS build
-RUN                    apk add unzip npm -y
+RUN                    apk add unzip npm
 RUN                    mkdir /app
 ADD                    https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip  /tmp/catalogue.zip
 RUN                    unzip /tmp/catalogue.zip  /app/
