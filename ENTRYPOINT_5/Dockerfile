@@ -4,7 +4,7 @@ RUN                    mkdir /app
 ADD                    https://roboshop-artifacts.s3.amazonaws.com/catalogue-v3.zip  /tmp/catalogue.zip
 RUN                    unzip /tmp/catalogue.zip  -d /app/
 WORKDIR                /app
-# RUN                    npm install
+RUN                    npm install
 
 
 FROM              docker.io/node:20.19.6-slim
